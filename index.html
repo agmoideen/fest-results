@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fest_Management_DB - Live Results Portal</title>
+    <title id="pageTitle">Fest Results Portal</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; }
         body { background-color: #f4f7f6; color: #333; padding: 15px; }
@@ -31,7 +31,7 @@
 
     <div class="container">
         <header>
-            <h1>Fest_Management_DB</h1>
+            <h1 id="festTitle">Fest Management</h1>
             <p>Live Results & Leaderboard Portal</p>
         </header>
 
@@ -40,17 +40,15 @@
             <button class="btn-admin" onclick="toggleAdminPanel()">🔒 അഡ്മിൻ ലോഗിൻ</button>
         </div>
 
-        <!-- അഡ്മിൻ ലോഗിൻ കാർഡ് -->
         <div id="adminLoginCard" class="card hidden">
             <h2>അഡ്മിൻ ലോഗിൻ</h2>
             <div class="form-group">
                 <label>പാസ്‌വേർഡ് നൽകുക:</label>
-                <input type="password" id="adminPass" placeholder="Password (ഉദാ: 1234)">
+                <input type="password" id="adminPass" placeholder="Password">
             </div>
             <button onclick="verifyLogin()">ലോഗിൻ ചെയ്യുക</button>
         </div>
 
-        <!-- അഡ്മിൻ കൺട്രോൾ പാനൽ -->
         <div id="adminPanelCard" class="card hidden" style="border-left: 5px solid #28a745;">
             <h2>⚙️ അഡ്മിൻ മാനേജ്‌മെന്റ് പാനൽ</h2>
             
@@ -95,7 +93,6 @@
             </form>
         </div>
 
-        <!-- ടീം ലീഡർബോർഡ് -->
         <div class="card">
             <h2>🥇 ടീം ലീഡർബോർഡ് (Team Standings)</h2>
             <table id="leaderboardTable">
@@ -106,20 +103,19 @@
             </table>
         </div>
 
-        <!-- ഫലങ്ങളുടെ ലിസ്റ്റ് -->
         <div class="card">
             <h2>📋 മുഴുവൻ മത്സര ഫലങ്ങളും</h2>
             <table id="resultsTable">
                 <thead>
                     <tr><th>ഇനം</th><th>പേര്</th><th>ടീം</th><th>പോയിന്റ്</th><th class="admin-col hidden">ആക്ഷൻ</th></tr>
                 </thead>
-                <tbody><tr><td colspan="5" style="text-align:center;">ലോഡ് ചെയ്യുന്നു...</td></tr></tbody>
+                <tbody><tr><td colspan="5" style="text-align:center;">ഇതുവരെ ഫലങ്ങൾ ഒന്നും ചേർത്തിട്ടില്ല.</td></tr></tbody>
             </table>
         </div>
     </div>
 
     <script>
-        // നിങ്ങൾ നൽകിയ ഗൂഗിൾ ആപ്സ് സ്ക്രിപ്റ്റ് ലിങ്ക് ഇവിടെ ചേർത്തിരിക്കുന്നു
+        // Apnar Google Apps Script Web App Link ekhane connect kora ache
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwrXGfw6bTvprtIEPXcqUBUIW9AIW6IERJu1zXFCexgFTx_E2zF8ZAzYafr8t0LyNbb/exec";
         
         let isAdmin = false;
@@ -158,6 +154,13 @@
             try {
                 const response = await fetch(SCRIPT_URL + "?action=getData");
                 globalData = await response.json();
+
+                // Google Sheet-er Settings theke FestName niye web page-er title update korbe
+                if (globalData.settings && globalData.settings.FestName) {
+                    let festName = globalData.settings.FestName;
+                    document.getElementById('festTitle').innerText = festName;
+                    document.getElementById('pageTitle').innerText = festName + " - Live Results";
+                }
 
                 let catSelect = document.getElementById('categorySelect');
                 let teamSelect = document.getElementById('teamSelect');
