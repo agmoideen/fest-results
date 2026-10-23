@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fest_Management_DB - Live Results Portal</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #f4f7f6; color: #333; padding: 15px; }
+        header { background: linear-gradient(135deg, #0f4c81, #1a73e8); color: white; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h2 { color: #0f4c81; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 2px solid #f1f3f4; padding-bottom: 8px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; background: #fff; }
+        button { background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; font-size: 1rem; }
+        button:hover { background-color: #218838; }
+        .btn-admin { background-color: #ffc107; color: #333; width: auto; float: right; padding: 6px 12px; font-size: 0.85rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.95rem; }
+        th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; }
+        th { background-color: #f1f3f4; }
+        .hidden { display: none; }
+        .flex-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .team-badge { background: #e8f0fe; color: #1a73e8; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media(max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Fest_Management_DB</h1>
+            <p>Live Results & Leaderboard Portal</p>
+        </header>
+
+        <div class="flex-box">
+            <h2>🏆 പ്രധാന ലീഡർബോർഡ് & ഫലങ്ങൾ</h2>
+            <button class="btn-admin" onclick="toggleAdminPanel()">🔒 അഡ്മിൻ ലോഗിൻ</button>
+        </div>
+
+        <!-- അഡ്മിൻ ലോഗിൻ കാർഡ് -->
+        <div id="adminLoginCard" class="card hidden">
+            <h2>അഡ്മിൻ ലോഗിൻ</h2>
+            <div class="form-group">
+                <label>പാസ്‌വേർഡ് നൽകുക:</label>
+                <input type="password" id="adminPass" placeholder="Password (ഉദാ: 1234)">
+            </div>
+            <button onclick="verifyLogin()">ലോഗിൻ ചെയ്യുക</button>
+        </div>
+
+        <!-- അഡ്മിൻ കൺട്രോൾ പാനൽ -->
+        <div id="adminPanelCard" class="card hidden" style="border-left: 5px solid #28a745;">
+            <h2>⚙️ അഡ്മിൻ മാനേജ്‌മെന്റ് പാനൽ</h2>
+            
+            <div class="grid-2" style="margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                <div>
+                    <h3>പുതിയ മത്സരം/ഇനം ചേർക്കുക</h3>
+                    <div class="form-group" style="margin-top:10px;">
+                        <input type="text" id="newCategory" placeholder="ഉദാ: മാപ്പിളപ്പാട്ട്">
+                    </div>
+                    <button onclick="addCategory()" style="background:#17a2b8;">ഇനം ചേർക്കുക</button>
+                </div>
+                <div>
+                    <h3>പുതിയ ടീം/റേഞ്ച് ചേർക്കുക</h3>
+                    <div class="form-group" style="margin-top:10px;">
+                        <input type="text" id="newTeam" placeholder="ഉദാ: തൃക്കരിപ്പൂർ സൗത്ത്">
+                    </div>
+                    <button onclick="addTeam()" style="background:#6c757d;">ടീം ചേർക്കുക</button>
+                </div>
+            </div>
+
+            <h3>മാർക്കും ഫലവും എന്റർ ചെയ്യുക</h3>
+            <form id="resultForm" style="margin-top: 10px;">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>മത്സര ഇനം (Category):</label>
+                        <select id="categorySelect" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>ടീം / റേഞ്ച്:</label>
+                        <select id="teamSelect" required></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>വിദ്യാർത്ഥിയുടെ പേര്:</label>
+                    <input type="text" id="partName" placeholder="ഉദാ: അഹ്മദ്" required>
+                </div>
+                <div class="form-group">
+                    <label>ലഭിച്ച പോയിന്റുകൾ:</label>
+                    <input type="number" id="points" placeholder="ഉദാ: 5" required>
+                </div>
+                <button type="submit" id="saveBtn">റിസൾട്ട് സേവ് ചെയ്യുക</button>
+            </form>
+        </div>
+
+        <!-- ടീം ലീഡർബോർഡ് -->
+        <div class="card">
+            <h2>🥇 ടീം ലീഡർബോർഡ് (Team Standings)</h2>
+            <table id="leaderboardTable">
+                <thead>
+                    <tr><th>സ്ഥാനം</th><th>ടീം / റേഞ്ച്</th><th>ആകെ പോയിന്റ്</th></tr>
+                </thead>
+                <tbody><tr><td colspan="3" style="text-align:center;">ലോഡ് ചെയ്യുന്നു...</td></tr></tbody>
+            </table>
+        </div>
+
+        <!-- ഫലങ്ങളുടെ ലിസ്റ്റ് -->
+        <div class="card">
+            <h2>📋 മുഴുവൻ മത്സര ഫലങ്ങളും</h2>
+            <table id="resultsTable">
+                <thead>
+                    <tr><th>ഇനം</th><th>പേര്</th><th>ടീം</th><th>പോയിന്റ്</th><th class="admin-col hidden">ആക്ഷൻ</th></tr>
+                </thead>
+                <tbody><tr><td colspan="5" style="text-align:center;">ലോഡ് ചെയ്യുന്നു...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // നിങ്ങൾ നൽകിയ ഗൂഗിൾ ആപ്സ് സ്ക്രിപ്റ്റ് ലിങ്ക് ഇവിടെ ചേർത്തിരിക്കുന്നു
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwrXGfw6bTvprtIEPXcqUBUIW9AIW6IERJu1zXFCexgFTx_E2zF8ZAzYafr8t0LyNbb/exec";
+        
+        let isAdmin = false;
+        let globalData = {};
+
+        function toggleAdminPanel() {
+            if (!isAdmin) {
+                document.getElementById('adminLoginCard').classList.toggle('hidden');
+            } else {
+                document.getElementById('adminPanelCard').classList.toggle('hidden');
+            }
+        }
+
+        async function verifyLogin() {
+            const pass = document.getElementById('adminPass').value;
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "login", password: pass })
+                });
+                const res = await response.json();
+                if (res.status === "success") {
+                    isAdmin = true;
+                    alert("അഡ്മിൻ ലോഗിൻ വിജയിച്ചു!");
+                    document.getElementById('adminLoginCard').classList.add('hidden');
+                    document.getElementById('adminPanelCard').classList.remove('hidden');
+                    document.querySelectorAll('.admin-col').forEach(el => el.classList.remove('hidden'));
+                    loadData();
+                } else {
+                    alert("തെറ്റായ പാസ്‌വേർഡ്!");
+                }
+            } catch (err) { alert("ലോഗിൻ പരാജയപ്പെട്ടു."); }
+        }
+
+        async function loadData() {
+            try {
+                const response = await fetch(SCRIPT_URL + "?action=getData");
+                globalData = await response.json();
+
+                let catSelect = document.getElementById('categorySelect');
+                let teamSelect = document.getElementById('teamSelect');
+                catSelect.innerHTML = '<option value="">ഇനം തിരഞ്ഞെടുക്കുക</option>';
+                teamSelect.innerHTML = '<option value="">ടീം തിരഞ്ഞെടുക്കുക</option>';
+
+                globalData.categories.forEach(cat => {
+                    catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+                });
+                globalData.teams.forEach(team => {
+                    teamSelect.innerHTML += `<option value="${team}">${team}</option>`;
+                });
+
+                const resultsTbody = document.getElementById('resultsTable').getElementsByTagName('tbody')[0];
+                resultsTbody.innerHTML = "";
+                let teamPoints = {};
+
+                globalData.teams.forEach(t => teamPoints[t] = 0);
+
+                if (globalData.results.length === 0) {
+                    resultsTbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">ഇതുവരെ ഫലങ്ങൾ ഒന്നും ചേർത്തിട്ടില്ല.</td></tr>`;
+                }
+
+                globalData.results.forEach(item => {
+                    let row = resultsTbody.insertRow();
+                    row.insertCell(0).innerText = item.category;
+                    row.insertCell(1).innerText = item.name;
+                    row.insertCell(2).innerHTML = `<span class="team-badge">${item.team}</span>`;
+                    row.insertCell(3).innerText = item.points;
+
+                    if (isAdmin) {
+                        let actionCell = row.insertCell(4);
+                        let delBtn = document.createElement('button');
+                        delBtn.innerText = "Delete";
+                        delBtn.style.backgroundColor = "#dc3545";
+                        delBtn.style.padding = "4px 8px";
+                        delBtn.style.fontSize = "0.8rem";
+                        delBtn.onclick = () => deleteResult(item.id);
+                        actionCell.appendChild(delBtn);
+                    }
+
+                    let pts = parseInt(item.points) || 0;
+                    if (teamPoints[item.team] !== undefined) {
+                        teamPoints[item.team] += pts;
+                    } else {
+                        teamPoints[item.team] = pts;
+                    }
+                });
+
+                renderLeaderboard(teamPoints);
+            } catch (err) { console.error(err); }
+        }
+
+        function renderLeaderboard(teamPoints) {
+            const lbTbody = document.getElementById('leaderboardTable').getElementsByTagName('tbody')[0];
+            lbTbody.innerHTML = "";
+            let sortedTeams = Object.keys(teamPoints).sort((a, b) => teamPoints[b] - teamPoints[a]);
+
+            sortedTeams.forEach((team, index) => {
+                let row = lbTbody.insertRow();
+                row.insertCell(0).innerText = `#${index + 1}`;
+                row.insertCell(1).innerText = team;
+                row.insertCell(2).innerText = teamPoints[team];
+            });
+        }
+
+        async function addCategory() {
+            let cat = document.getElementById('newCategory').value;
+            if(!cat) return alert("ഇനത്തിന്റെ പേര് നൽകുക");
+            await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "addCategory", category: cat }) });
+            document.getElementById('newCategory').value = "";
+            alert("ഇനം വിജയകരമായി ചേർത്തു!");
+            loadData();
+        }
+
+        async function addTeam() {
+            let team = document.getElementById('newTeam').value;
+            if(!team) return alert("ടീമിന്റെ പേര് നൽകുക");
+            await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "addTeam", team: team }) });
+            document.getElementById('newTeam').value = "";
+            alert("ടീം വിജയകരമായി ചേർത്തു!");
+            loadData();
+        }
+
+        document.getElementById('resultForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const payload = {
+                action: "addResult",
+                category: document.getElementById('categorySelect').value,
+                name: document.getElementById('partName').value,
+                team: document.getElementById('teamSelect').value,
+                points: document.getElementById('points').value
+            };
+            await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+            document.getElementById('resultForm').reset();
+            alert("റിസൾട്ട് സേവ് ചെയ്തു!");
+            loadData();
+        });
+
+        async function deleteResult(id) {
+            if (confirm("ഡിലീറ്റ് ചെയ്യണമെന്ന് ഉറപ്പാണോ?")) {
+                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "deleteResult", id: id }) });
+                loadData();
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
