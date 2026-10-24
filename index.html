@@ -17,9 +17,9 @@
         button { background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.95rem; }
         button:hover { background-color: #218838; }
         .btn-admin { background-color: #ffc107; color: #333; width: auto; float: right; padding: 6px 12px; font-size: 0.85rem; }
-        .btn-refresh { background-color: #17a2b8; color: white; padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; border: none; cursor: pointer; }
+        .btn-refresh { background-color: #17a2b8; color: white; padding: 8px 15px; font-size: 0.9rem; border-radius: 6px; border: none; cursor: pointer; margin-bottom: 15px; }
         .btn-danger { background-color: #dc3545; color: white; padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; border: none; cursor: pointer; }
-        .btn-edit { background-color: #ffc107; color: #333; padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; border: none; cursor: pointer; margin-right: 4px; }
+        .btn-edit { background-color: #ffc107; color: #333; padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; border: none; cursor: pointer; margin-right: 4px; font-weight: bold; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.95rem; }
         th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; }
         th { background-color: #f1f3f4; }
@@ -43,10 +43,7 @@
 
         <div class="flex-box">
             <h2>🏆 പ്രധാന ലീഡർബോർഡ് & ഫലങ്ങൾ</h2>
-            <div>
-                <button class="btn-refresh" onclick="loadData()">🔄 Refresh</button>
-                <button class="btn-admin" onclick="toggleAdminPanel()">🔒 അഡ്മിൻ ലോഗിൻ</button>
-            </div>
+            <button class="btn-admin" onclick="toggleAdminPanel()">🔒 അഡ്മിൻ ലോഗിൻ</button>
         </div>
 
         <!-- അഡ്മിൻ ലോഗിൻ കാർഡ് -->
@@ -61,7 +58,10 @@
 
         <!-- അഡ്മിൻ മാനേജ്‌മെന്റ് പാനൽ -->
         <div id="adminPanelCard" class="card hidden" style="border-left: 5px solid #28a745;">
-            <h2>⚙️ അഡ്മിൻ മാനേജ്‌മെന്റ് പാനൽ</h2>
+            <div class="flex-box">
+                <h2>⚙️ അഡ്മിൻ മാനേജ്‌മെന്റ് പാനൽ</h2>
+                <button class="btn-refresh" onclick="loadData()">🔄 Refresh Data</button>
+            </div>
             
             <!-- അഡ്മിൻ ടാബുകൾ -->
             <div style="margin-bottom: 15px;">
@@ -158,10 +158,7 @@
 
         <!-- രജിസ്റ്റർ ചെയ്ത വിദ്യാർത്ഥികളുടെ ലിസ്റ്റ് (Admin Only View) -->
         <div id="studentListCard" class="card hidden">
-            <div class="flex-box">
-                <h2>👥 രജിസ്റ്റർ ചെയ്ത വിദ്യാർത്ഥികൾ (Student Register)</h2>
-                <button class="btn-refresh" onclick="loadData()">🔄 Refresh Table</button>
-            </div>
+            <h2>👥 രജിസ്റ്റർ ചെയ്ത വിദ്യാർത്ഥികൾ (Student Register)</h2>
             <table id="studentsTable">
                 <thead>
                     <tr><th>Chest No</th><th>പേര്</th><th>ടീം</th><th>ഇനം</th><th>ക്ലാസ്</th><th>ആക്ഷൻ</th></tr>
@@ -194,7 +191,6 @@
     </div>
 
     <script>
-        // നിങ്ങൾ പുതിയതായി നൽകിയ ഗൂഗിൾ ആപ്സ് സ്ക്രിപ്റ്റ് ലിങ്ക് ഇവിടെ കണക്ട് ചെയ്തിരിക്കുന്നു
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUdFiM5TbMHFebuMLMYXnfSfuTNC53P0_L8ESv-M2gKOjp54e_7TqaGRpg38SwEFhX/exec";
         
         let isAdmin = false;
@@ -336,7 +332,7 @@
             });
         }
 
-        // --- വിദ്യാർത്ഥികളുടെ രജിസ്ട്രേഷൻ ലോജിക് (Google Sheet-ലേക്ക് സേവ് ചെയ്യാൻ) ---
+        // --- വിദ്യാർത്ഥികളുടെ രജിസ്ട്രേഷൻ ലോജിക് ---
         document.getElementById('studentRegForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const payload = {
@@ -376,7 +372,11 @@
                 row.insertCell(2).innerText = st.team;
                 row.insertCell(3).innerText = st.category;
                 row.insertCell(4).innerText = st.sClass;
-                row.insertCell(5).innerHTML = `
+                
+                // വിദ്യാർത്ഥി വിവരങ്ങൾ എഡിറ്റ് ചെയ്യാനും ഡിലീറ്റ് ചെയ്യാനുമുള്ള ബട്ടണുകൾ
+                let actionCell = row.insertCell(5);
+                actionCell.innerHTML = `
+                    <button class="btn-edit" onclick="editStudent('${st.chestNo}', '${st.name}', '${st.sClass}')">Edit</button>
                     <button class="btn-danger" onclick="deleteStudent('${st.chestNo}')">Delete</button>
                 `;
             });
@@ -385,6 +385,25 @@
         async function deleteStudent(chestNo) {
             if(confirm("ഈ വിദ്യാർത്ഥിയെ രജിസ്ട്രേഷനിൽ നിന്ന് നീക്കം ചെയ്യണമെന്നു ഉറപ്പാണോ?")) {
                 await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "deleteStudent", chestNo: chestNo }) });
+                loadData();
+            }
+        }
+
+        async function editStudent(chestNo, oldName, oldClass) {
+            let newName = prompt("പുതിയ പേര് നൽകുക:", oldName);
+            let newClass = prompt("പുതിയ ക്ലാസ് നൽകുക:", oldClass);
+            if (newName !== null && newClass !== null) {
+                // പഴയത് ഡിലീറ്റ് ചെയ്ത് പുതിയത് ചേർക്കുന്ന രീതി
+                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "deleteStudent", chestNo: chestNo }) });
+                const payload = {
+                    action: "addStudent",
+                    name: newName,
+                    team: document.getElementById('regTeamSelect').value || "Default",
+                    category: document.getElementById('regCategorySelect').value || "General",
+                    sClass: newClass
+                };
+                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+                alert("വിദ്യാർത്ഥിയുടെ വിവരങ്ങൾ അപ്ഡേറ്റ് ചെയ്തു!");
                 loadData();
             }
         }
@@ -424,7 +443,7 @@
             reader.readAsText(file);
         }
 
-        // --- അഡ്മിൻ ആക്ഷനുകൾ (Add, Edit, Delete) ---
+        // --- അഡ്മിൻ ആക്ഷനുകൾ (Add, Edit, Delete Results) ---
         async function addCategory() {
             let cat = document.getElementById('newCategory').value;
             if(!cat) return alert("ഇനത്തിന്റെ പേര് നൽകുക");
