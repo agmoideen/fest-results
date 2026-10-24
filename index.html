@@ -3,27 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">Fest Results Portal</title>
+    <title id="pageTitle">Fest Management & Results Portal</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; }
         body { background-color: #f4f7f6; color: #333; padding: 15px; }
         header { background: linear-gradient(135deg, #0f4c81, #1a73e8); color: white; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; }
-        .container { max-width: 900px; margin: auto; }
+        .container { max-width: 950px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
         h2 { color: #0f4c81; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 2px solid #f1f3f4; padding-bottom: 8px; }
         .form-group { margin-bottom: 12px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
         input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; background: #fff; }
-        button { background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; font-size: 1rem; }
+        button { background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.95rem; }
         button:hover { background-color: #218838; }
         .btn-admin { background-color: #ffc107; color: #333; width: auto; float: right; padding: 6px 12px; font-size: 0.85rem; }
+        .btn-refresh { background-color: #17a2b8; color: white; padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; border: none; cursor: pointer; }
+        .btn-danger { background-color: #dc3545; color: white; padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; border: none; cursor: pointer; }
+        .btn-edit { background-color: #ffc107; color: #333; padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; border: none; cursor: pointer; margin-right: 4px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.95rem; }
         th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; }
         th { background-color: #f1f3f4; }
         .hidden { display: none; }
         .flex-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .team-badge { background: #e8f0fe; color: #1a73e8; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+        .chest-badge { background: #e6f4ea; color: #137333; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .tab-btn { background: #e9ecef; color: #495057; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 5px; }
+        .tab-btn.active { background: #0f4c81; color: white; }
         @media(max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -32,14 +38,18 @@
     <div class="container">
         <header>
             <h1 id="festTitle">Fest Management</h1>
-            <p>Live Results & Leaderboard Portal</p>
+            <p>Live Results, Registration & Leaderboard Portal</p>
         </header>
 
         <div class="flex-box">
             <h2>🏆 പ്രധാന ലീഡർബോർഡ് & ഫലങ്ങൾ</h2>
-            <button class="btn-admin" onclick="toggleAdminPanel()">🔒 അഡ്മിൻ ലോഗിൻ</button>
+            <div>
+                <button class="btn-refresh" onclick="loadData()">🔄 Refresh</button>
+                <button class="btn-admin" onclick="toggleAdminPanel()">🔒 അഡ്മിൻ ലോഗിൻ</button>
+            </div>
         </div>
 
+        <!-- അഡ്മിൻ ലോഗിൻ കാർഡ് -->
         <div id="adminLoginCard" class="card hidden">
             <h2>അഡ്മിൻ ലോഗിൻ</h2>
             <div class="form-group">
@@ -49,50 +59,118 @@
             <button onclick="verifyLogin()">ലോഗിൻ ചെയ്യുക</button>
         </div>
 
+        <!-- അഡ്മിൻ മാനേജ്‌മെന്റ് പാനൽ -->
         <div id="adminPanelCard" class="card hidden" style="border-left: 5px solid #28a745;">
             <h2>⚙️ അഡ്മിൻ മാനേജ്‌മെന്റ് പാനൽ</h2>
             
-            <div class="grid-2" style="margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <div>
-                    <h3>പുതിയ മത്സരം/ഇനം ചേർക്കുക</h3>
-                    <div class="form-group" style="margin-top:10px;">
-                        <input type="text" id="newCategory" placeholder="ഉദാ: മാപ്പിളപ്പാട്ട്">
-                    </div>
-                    <button onclick="addCategory()" style="background:#17a2b8;">ഇനം ചേർക്കുക</button>
-                </div>
-                <div>
-                    <h3>പുതിയ ടീം/റേഞ്ച് ചേർക്കുക</h3>
-                    <div class="form-group" style="margin-top:10px;">
-                        <input type="text" id="newTeam" placeholder="ഉദാ: തൃക്കരിപ്പൂർ സൗത്ത്">
-                    </div>
-                    <button onclick="addTeam()" style="background:#6c757d;">ടീം ചേർക്കുക</button>
-                </div>
+            <!-- അഡ്മിൻ ടാബുകൾ -->
+            <div style="margin-bottom: 15px;">
+                <button class="tab-btn active" onclick="switchAdminTab('reg')">📝 സ്റ്റുഡന്റ് രജിസ്ട്രേഷൻ</button>
+                <button class="tab-btn" onclick="switchAdminTab('score')">🥇 മാർക്ക് എന്ററി</button>
+                <button class="tab-btn" onclick="switchAdminTab('setup')">⚙️ കാറ്റഗറി & ടീം</button>
             </div>
 
-            <h3>മാർക്കും ഫലവും എന്റർ ചെയ്യുക</h3>
-            <form id="resultForm" style="margin-top: 10px;">
+            <!-- 1. വിദ്യാർത്ഥി രജിസ്ട്രേഷൻ ടാബ് -->
+            <div id="tabStudentReg">
+                <h3>വിദ്യാർത്ഥി രജിസ്ട്രേഷൻ (Single Registration)</h3>
+                <form id="studentRegForm" style="margin-top: 10px;">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>വിദ്യാർത്ഥിയുടെ പേര്:</label>
+                            <input type="text" id="regName" placeholder="ഉദാ: അഹ്മദ്" required>
+                        </div>
+                        <div class="form-group">
+                            <label>ടീം / റേഞ്ച്:</label>
+                            <select id="regTeamSelect" required></select>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>മത്സര ഇനം (Category):</label>
+                            <select id="regCategorySelect" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>ക്ലാസ് / കാറ്റഗറി:</label>
+                            <input type="text" id="regClass" placeholder="ഉദാ: Sub Junior / Class 5" required>
+                        </div>
+                    </div>
+                    <button type="submit">വിദ്യാർത്ഥിയെ രജിസ്റ്റർ ചെയ്യുക (Auto Chest No.)</button>
+                </form>
+
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #dee2e6;">
+
+                <h3>ബൾക്ക് രജിസ്ട്രേഷൻ (Bulk Registration - CSV File)</h3>
+                <p style="font-size: 0.85rem; color: #6c757d; margin-bottom: 10px;">
+                    CSV ഫയലിന്റെ Format: <code>Name, Team, Category, Class</code> (Headers നിർബന്ധമില്ല)
+                </p>
+                <div class="form-group">
+                    <input type="file" id="csvFileInput" accept=".csv">
+                </div>
+                <button onclick="processBulkUpload()" style="background-color: #6c757d;">CSV വഴി അപ്‌ലോഡ് ചെയ്യുക</button>
+            </div>
+
+            <!-- 2. മാർക്ക് എന്ററി ടാബ് -->
+            <div id="tabScoreEntry" class="hidden">
+                <h3>മാർക്കും ഫലവും എന്റർ ചെയ്യുക</h3>
+                <form id="resultForm" style="margin-top: 10px;">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>മത്സര ഇനം (Category):</label>
+                            <select id="categorySelect" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>ടീം / റേഞ്ച്:</label>
+                            <select id="teamSelect" required></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>വിദ്യാർത്ഥിയുടെ പേര് / ചെസ്റ്റ് നമ്പർ:</label>
+                        <input type="text" id="partName" placeholder="ഉദാ: അഹ്മദ് (Chest No: 101)" required>
+                    </div>
+                    <div class="form-group">
+                        <label>ലഭിച്ച പോയിന്റുകൾ:</label>
+                        <input type="number" id="points" placeholder="ഉദാ: 5" required>
+                    </div>
+                    <button type="submit">റിസൾട്ട് സേവ് ചെയ്യുക</button>
+                </form>
+            </div>
+
+            <!-- 3. കാറ്റഗറി & ടീം സെറ്റപ്പ് ടാബ് -->
+            <div id="tabSetup" class="hidden">
                 <div class="grid-2">
-                    <div class="form-group">
-                        <label>മത്സര ഇനം (Category):</label>
-                        <select id="categorySelect" required></select>
+                    <div>
+                        <h3>പുതിയ മത്സരം/ഇനം ചേർക്കുക</h3>
+                        <div class="form-group" style="margin-top:10px;">
+                            <input type="text" id="newCategory" placeholder="ഉദാ: മാപ്പിളപ്പാട്ട്">
+                        </div>
+                        <button onclick="addCategory()" style="background:#17a2b8;">ഇനം ചേർക്കുക</button>
                     </div>
-                    <div class="form-group">
-                        <label>ടീം / റേഞ്ച്:</label>
-                        <select id="teamSelect" required></select>
+                    <div>
+                        <h3>പുതിയ ടീം/റേഞ്ച് ചേർക്കുക</h3>
+                        <div class="form-group" style="margin-top:10px;">
+                            <input type="text" id="newTeam" placeholder="ഉദാ: തൃക്കരിപ്പൂർ സൗത്ത്">
+                        </div>
+                        <button onclick="addTeam()" style="background:#6c757d;">ടീം ചേർക്കുക</button>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>വിദ്യാർത്ഥിയുടെ പേര്:</label>
-                    <input type="text" id="partName" placeholder="ഉദാ: അഹ്മദ്" required>
-                </div>
-                <div class="form-group">
-                    <label>ലഭിച്ച പോയിന്റുകൾ:</label>
-                    <input type="number" id="points" placeholder="ഉദാ: 5" required>
-                </div>
-                <button type="submit" id="saveBtn">റിസൾട്ട് സേവ് ചെയ്യുക</button>
-            </form>
+            </div>
         </div>
 
+        <!-- രജിസ്റ്റർ ചെയ്ത വിദ്യാർത്ഥികളുടെ ലിസ്റ്റ് (Admin Only View) -->
+        <div id="studentListCard" class="card hidden">
+            <div class="flex-box">
+                <h2>👥 രജിസ്റ്റർ ചെയ്ത വിദ്യാർത്ഥികൾ (Student Register)</h2>
+                <button class="btn-refresh" onclick="loadData()">🔄 Refresh Table</button>
+            </div>
+            <table id="studentsTable">
+                <thead>
+                    <tr><th>Chest No</th><th>പേര്</th><th>ടീം</th><th>ഇനം</th><th>ക്ലാസ്</th><th>ആക്ഷൻ</th></tr>
+                </thead>
+                <tbody><tr><td colspan="6" style="text-align:center;">ലോഡ് ചെയ്യുന്നു...</td></tr></tbody>
+            </table>
+        </div>
+
+        <!-- ടീം ലീഡർബോർഡ് -->
         <div class="card">
             <h2>🥇 ടീം ലീഡർബോർഡ് (Team Standings)</h2>
             <table id="leaderboardTable">
@@ -103,6 +181,7 @@
             </table>
         </div>
 
+        <!-- ഫലങ്ങളുടെ ലിസ്റ്റ് -->
         <div class="card">
             <h2>📋 മുഴുവൻ മത്സര ഫലങ്ങളും</h2>
             <table id="resultsTable">
@@ -115,8 +194,8 @@
     </div>
 
     <script>
-        // Apnar Google Apps Script Web App Link ekhane connect kora ache
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwrXGfw6bTvprtIEPXcqUBUIW9AIW6IERJu1zXFCexgFTx_E2zF8ZAzYafr8t0LyNbb/exec";
+        // നിങ്ങൾ പുതിയതായി നൽകിയ ഗൂഗിൾ ആപ്സ് സ്ക്രിപ്റ്റ് ലിങ്ക് ഇവിടെ കണക്ട് ചെയ്തിരിക്കുന്നു
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUdFiM5TbMHFebuMLMYXnfSfuTNC53P0_L8ESv-M2gKOjp54e_7TqaGRpg38SwEFhX/exec";
         
         let isAdmin = false;
         let globalData = {};
@@ -126,6 +205,24 @@
                 document.getElementById('adminLoginCard').classList.toggle('hidden');
             } else {
                 document.getElementById('adminPanelCard').classList.toggle('hidden');
+            }
+        }
+
+        function switchAdminTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tabStudentReg').classList.add('hidden');
+            document.getElementById('tabScoreEntry').classList.add('hidden');
+            document.getElementById('tabSetup').classList.add('hidden');
+
+            if (tabName === 'reg') {
+                document.getElementById('tabStudentReg').classList.remove('hidden');
+                event.target.classList.add('active');
+            } else if (tabName === 'score') {
+                document.getElementById('tabScoreEntry').classList.remove('hidden');
+                event.target.classList.add('active');
+            } else if (tabName === 'setup') {
+                document.getElementById('tabSetup').classList.remove('hidden');
+                event.target.classList.add('active');
             }
         }
 
@@ -142,6 +239,7 @@
                     alert("അഡ്മിൻ ലോഗിൻ വിജയിച്ചു!");
                     document.getElementById('adminLoginCard').classList.add('hidden');
                     document.getElementById('adminPanelCard').classList.remove('hidden');
+                    document.getElementById('studentListCard').classList.remove('hidden');
                     document.querySelectorAll('.admin-col').forEach(el => el.classList.remove('hidden'));
                     loadData();
                 } else {
@@ -155,35 +253,52 @@
                 const response = await fetch(SCRIPT_URL + "?action=getData");
                 globalData = await response.json();
 
-                // Google Sheet-er Settings theke FestName niye web page-er title update korbe
                 if (globalData.settings && globalData.settings.FestName) {
                     let festName = globalData.settings.FestName;
                     document.getElementById('festTitle').innerText = festName;
                     document.getElementById('pageTitle').innerText = festName + " - Live Results";
                 }
 
-                let catSelect = document.getElementById('categorySelect');
-                let teamSelect = document.getElementById('teamSelect');
-                catSelect.innerHTML = '<option value="">ഇനം തിരഞ്ഞെടുക്കുക</option>';
-                teamSelect.innerHTML = '<option value="">ടീം തിരഞ്ഞെടുക്കുക</option>';
+                populateDropdowns();
+                renderResultsTable();
+                renderStudentsTable();
+            } catch (err) { console.error(err); }
+        }
 
-                globalData.categories.forEach(cat => {
-                    catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
-                });
-                globalData.teams.forEach(team => {
-                    teamSelect.innerHTML += `<option value="${team}">${team}</option>`;
-                });
+        function populateDropdowns() {
+            let catSelect = document.getElementById('categorySelect');
+            let teamSelect = document.getElementById('teamSelect');
+            let regCatSelect = document.getElementById('regCategorySelect');
+            let regTeamSelect = document.getElementById('regTeamSelect');
 
-                const resultsTbody = document.getElementById('resultsTable').getElementsByTagName('tbody')[0];
-                resultsTbody.innerHTML = "";
-                let teamPoints = {};
+            let catOptions = '<option value="">ഇനം തിരഞ്ഞെടുക്കുക</option>';
+            let teamOptions = '<option value="">ടീം തിരഞ്ഞെടുക്കുക</option>';
 
+            if (globalData.categories) {
+                globalData.categories.forEach(cat => { catOptions += `<option value="${cat}">${cat}</option>`; });
+            }
+            if (globalData.teams) {
+                globalData.teams.forEach(team => { teamOptions += `<option value="${team}">${team}</option>`; });
+            }
+
+            catSelect.innerHTML = catOptions;
+            teamSelect.innerHTML = teamOptions;
+            regCatSelect.innerHTML = catOptions;
+            regTeamSelect.innerHTML = teamOptions;
+        }
+
+        function renderResultsTable() {
+            const resultsTbody = document.getElementById('resultsTable').getElementsByTagName('tbody')[0];
+            resultsTbody.innerHTML = "";
+            let teamPoints = {};
+
+            if (globalData.teams) {
                 globalData.teams.forEach(t => teamPoints[t] = 0);
+            }
 
-                if (globalData.results.length === 0) {
-                    resultsTbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">ഇതുവരെ ഫലങ്ങൾ ഒന്നും ചേർത്തിട്ടില്ല.</td></tr>`;
-                }
-
+            if (!globalData.results || globalData.results.length === 0) {
+                resultsTbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">ഇതുവരെ ഫലങ്ങൾ ഒന്നും ചേർത്തിട്ടില്ല.</td></tr>`;
+            } else {
                 globalData.results.forEach(item => {
                     let row = resultsTbody.insertRow();
                     row.insertCell(0).innerText = item.category;
@@ -193,25 +308,19 @@
 
                     if (isAdmin) {
                         let actionCell = row.insertCell(4);
-                        let delBtn = document.createElement('button');
-                        delBtn.innerText = "Delete";
-                        delBtn.style.backgroundColor = "#dc3545";
-                        delBtn.style.padding = "4px 8px";
-                        delBtn.style.fontSize = "0.8rem";
-                        delBtn.onclick = () => deleteResult(item.id);
-                        actionCell.appendChild(delBtn);
+                        actionCell.innerHTML = `
+                            <button class="btn-edit" onclick="editResult('${item.id}', '${item.name}', '${item.points}')">Edit</button>
+                            <button class="btn-danger" onclick="deleteResult('${item.id}')">Delete</button>
+                        `;
                     }
 
                     let pts = parseInt(item.points) || 0;
-                    if (teamPoints[item.team] !== undefined) {
-                        teamPoints[item.team] += pts;
-                    } else {
-                        teamPoints[item.team] = pts;
-                    }
+                    if (teamPoints[item.team] !== undefined) teamPoints[item.team] += pts;
+                    else teamPoints[item.team] = pts;
                 });
+            }
 
-                renderLeaderboard(teamPoints);
-            } catch (err) { console.error(err); }
+            renderLeaderboard(teamPoints);
         }
 
         function renderLeaderboard(teamPoints) {
@@ -227,6 +336,95 @@
             });
         }
 
+        // --- വിദ്യാർത്ഥികളുടെ രജിസ്ട്രേഷൻ ലോജിക് (Google Sheet-ലേക്ക് സേവ് ചെയ്യാൻ) ---
+        document.getElementById('studentRegForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const payload = {
+                action: "addStudent",
+                name: document.getElementById('regName').value,
+                team: document.getElementById('regTeamSelect').value,
+                category: document.getElementById('regCategorySelect').value,
+                sClass: document.getElementById('regClass').value
+            };
+
+            try {
+                let response = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+                let res = await response.json();
+                if (res.status === "success") {
+                    document.getElementById('studentRegForm').reset();
+                    alert(`വിദ്യാർത്ഥി വിജയകരമായി രജിസ്റ്റർ ചെയ്തു! (Chest No: ${res.chestNo})`);
+                    loadData();
+                } else {
+                    alert("രജിസ്ട്രേഷൻ പരാജയപ്പെട്ടു.");
+                }
+            } catch(err) { alert("എറർ സംഭവിച്ചു."); }
+        });
+
+        function renderStudentsTable() {
+            const stTbody = document.getElementById('studentsTable').getElementsByTagName('tbody')[0];
+            stTbody.innerHTML = "";
+
+            if (!globalData.students || globalData.students.length === 0) {
+                stTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">വിദ്യാർത്ഥികൾ ആരും രജിസ്റ്റർ ചെയ്തിട്ടില്ല.</td></tr>`;
+                return;
+            }
+
+            globalData.students.forEach((st) => {
+                let row = stTbody.insertRow();
+                row.insertCell(0).innerHTML = `<span class="chest-badge">#${st.chestNo}</span>`;
+                row.insertCell(1).innerText = st.name;
+                row.insertCell(2).innerText = st.team;
+                row.insertCell(3).innerText = st.category;
+                row.insertCell(4).innerText = st.sClass;
+                row.insertCell(5).innerHTML = `
+                    <button class="btn-danger" onclick="deleteStudent('${st.chestNo}')">Delete</button>
+                `;
+            });
+        }
+
+        async function deleteStudent(chestNo) {
+            if(confirm("ഈ വിദ്യാർത്ഥിയെ രജിസ്ട്രേഷനിൽ നിന്ന് നീക്കം ചെയ്യണമെന്നു ഉറപ്പാണോ?")) {
+                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "deleteStudent", chestNo: chestNo }) });
+                loadData();
+            }
+        }
+
+        // --- CSV ബൾക്ക് അപ്‌ലോഡ് ലോജിക് ---
+        async function processBulkUpload() {
+            const fileInput = document.getElementById('csvFileInput');
+            const file = fileInput.files[0];
+            if (!file) return alert("ദയവായി ഒരു CSV ഫയൽ തിരഞ്ഞെടുക്കുക.");
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const text = e.target.result;
+                const rows = text.split('\n');
+                let count = 0;
+
+                for (let i = 0; i < rows.length; i++) {
+                    const cols = rows[i].split(',');
+                    if (cols.length >= 4) {
+                        let name = cols[0].trim();
+                        let team = cols[1].trim();
+                        let category = cols[2].trim();
+                        let sClass = cols[3].trim();
+
+                        if (name && name.toLowerCase() !== 'name') {
+                            let payload = { action: "addStudent", name, team, category, sClass };
+                            await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+                            count++;
+                        }
+                    }
+                }
+
+                alert(`${count} വിദ്യാർത്ഥികളുടെ വിവരങ്ങൾ ബൾക്ക് ആയി വിജയകരമായി അപ്‌ലോഡ് ചെയ്തു!`);
+                fileInput.value = "";
+                loadData();
+            };
+            reader.readAsText(file);
+        }
+
+        // --- അഡ്മിൻ ആക്ഷനുകൾ (Add, Edit, Delete) ---
         async function addCategory() {
             let cat = document.getElementById('newCategory').value;
             if(!cat) return alert("ഇനത്തിന്റെ പേര് നൽകുക");
@@ -263,6 +461,24 @@
         async function deleteResult(id) {
             if (confirm("ഡിലീറ്റ് ചെയ്യണമെന്ന് ഉറപ്പാണോ?")) {
                 await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "deleteResult", id: id }) });
+                loadData();
+            }
+        }
+
+        async function editResult(id, oldName, oldPoints) {
+            let newName = prompt("പുതിയ പേര് / വിവരങ്ങൾ നൽകുക:", oldName);
+            let newPoints = prompt("പുതിയ പോയിന്റ് നൽകുക:", oldPoints);
+            if (newName !== null && newPoints !== null) {
+                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "deleteResult", id: id }) });
+                const payload = {
+                    action: "addResult",
+                    category: document.getElementById('categorySelect').value || "General",
+                    name: newName,
+                    team: document.getElementById('teamSelect').value || "Default",
+                    points: newPoints
+                };
+                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+                alert("വിവരങ്ങൾ അപ്ഡേറ്റ് ചെയ്തു!");
                 loadData();
             }
         }
