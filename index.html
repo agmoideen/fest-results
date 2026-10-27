@@ -249,8 +249,9 @@
                 const response = await fetch(SCRIPT_URL + "?action=getData");
                 globalData = await response.json();
 
-                if (globalData.settings && globalData.settings.FestName) {
-                    let festName = globalData.settings.FestName;
+                // Google Sheet-ലെ Settings-ൽ നിന്ന് FestName എടുത്ത് വെബ്‌സൈറ്റിൽ മാറ്റാൻ
+                if (globalData.settings) {
+                    let festName = globalData.settings.FestName || globalData.settings.festname || "Fest Management";
                     document.getElementById('festTitle').innerText = festName;
                     document.getElementById('pageTitle').innerText = festName + " - Live Results";
                 }
@@ -373,7 +374,6 @@
                 row.insertCell(3).innerText = st.category;
                 row.insertCell(4).innerText = st.sClass;
                 
-                // വിദ്യാർത്ഥി വിവരങ്ങൾ എഡിറ്റ് ചെയ്യാനും ഡിലീറ്റ് ചെയ്യാനുമുള്ള ബട്ടണുകൾ
                 let actionCell = row.insertCell(5);
                 actionCell.innerHTML = `
                     <button class="btn-edit" onclick="editStudent('${st.chestNo}', '${st.name}', '${st.sClass}')">Edit</button>
@@ -393,7 +393,6 @@
             let newName = prompt("പുതിയ പേര് നൽകുക:", oldName);
             let newClass = prompt("പുതിയ ക്ലാസ് നൽകുക:", oldClass);
             if (newName !== null && newClass !== null) {
-                // പഴയത് ഡിലീറ്റ് ചെയ്ത് പുതിയത് ചേർക്കുന്ന രീതി
                 await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "deleteStudent", chestNo: chestNo }) });
                 const payload = {
                     action: "addStudent",
@@ -402,7 +401,7 @@
                     category: document.getElementById('regCategorySelect').value || "General",
                     sClass: newClass
                 };
-                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stylesheet || "POST", body: JSON.stringify(payload) });
                 alert("വിദ്യാർത്ഥിയുടെ വിവരങ്ങൾ അപ്ഡേറ്റ് ചെയ്തു!");
                 loadData();
             }
